@@ -1,5 +1,5 @@
+#!/bin/python
 # -*- coding: utf-8 -*-
-#!/bin/py
 # linear Regression sample
 # Hypothesis and cost function
 # H(x) = Wx + b
