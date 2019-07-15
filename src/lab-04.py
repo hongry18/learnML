@@ -113,7 +113,7 @@ def sample4():
     key, val = reader.read(filenameQueue)
 
     recordDefaults = [[0.], [0.], [0.], [0.]]
-    xy = tf.decode_csv(val, record_defaults=recordDefaults)
+    xy = tf.io.decode_csv(val, record_defaults=recordDefaults)
 
     trainXBatch, trainYBatch = tf.train.batch([xy[0:-1], xy[-1:]], batch_size=10)
 
@@ -135,18 +135,17 @@ def sample4():
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
-    print(trainXBatch, trainYBatch)
+    xBatch, yBatch = sess.run([trainXBatch, trainYBatch])
+
 
     for step in range(2001):
         xBatch, yBatch = sess.run([trainXBatch, trainYBatch])
-        """
         costVal, hyVal, _ = sess.run([cost, hypothesis, train], feed_dict={X: xBatch, Y: yBatch})
 
         if step % 100 != 0:
             continue
 
         print(step, " - Cost: ", costVal, ",\nPrediction: ", hyVal)
-        """
 
 #sample1()
 #sample2()
