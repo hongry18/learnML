@@ -4,3 +4,5 @@ lib/
 .Python/
 .Python
 *.swp
+log/
+logs/
