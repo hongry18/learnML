@@ -105,12 +105,88 @@ def in7():
     # Make rnn
     with tf.variable_scope('MultiRNNCell') as scope:
         cell = tf.nn.rnn_cell.LSTMCell(num_units=5, state_is_tuple=True)
-        cell = rnn.MultiRNNCell([cell] * 3, state_is_tuple=True) # 3 Layers
+        cell = rnn.MultiRNNCell([cell], state_is_tuple=True) # 3 Layers
+        #cells = [tf.nn.rnn_cell.LSTMCell(num_units=5, state_is_tuple=True) for _ in range(3)]
+        #cell = rnn.MultiRNNCell(cells)
 
         # rnn in/out
         outputs, _states = tf.nn.dynamic_rnn(cell, xData, dtype=tf.float32)
         print('Dynamic rnn: ', outputs)
         sess.run(tf.compat.v1.global_variables_initializer())
         print(outputs.eval())
+
+def in8():
+    batchSize = 3
+    sequenceLength = 5
+    inputDim = 3
+    dataSize = batchSize * sequenceLength * inputDim
+    xData = np.arange(dataSize, dtype=np.float32).reshape(batchSize, sequenceLength, inputDim)
+    with tf.variable_scope('dynamic_rnn') as scope:
+        cell = tf.nn.rnn_cell.LSTMCell(num_units=5, state_is_tuple=True)
+        outputs, _states = tf.nn.dynamic_rnn(cell, xData, dtype=tf.float32, sequence_length=[1, 3, 2])
+
+        # length 1 for batch 1, length 2 for batch 2
+
+        print('dynamic rnn: ', outputs)
+        sess.run(tf.compat.v1.global_variables_initializer())
+        print(outputs.eval())
+
+def in9():
+    batchSize = 3
+    sequenceLength = 5
+    inputDim = 3
+    dataSize = batchSize * sequenceLength * inputDim
+    xData = np.arange(dataSize, dtype=np.float32).reshape(batchSize, sequenceLength, inputDim)
+    with tf.variable_scope('bi-directional') as scope:
+        cellFw = tf.nn.rnn_cell.LSTMCell(num_units=5, state_is_tuple=True)
+        cellBw = tf.nn.rnn_cell.LSTMCell(num_units=5, state_is_tuple=True)
+
+        outputs, states = tf.nn.bidirectional_dynamic_rnn(cellFw, cellBw, xData, sequence_length=[2, 3, 1], dtype=tf.float32)
+        sess.run(tf.compat.v1.global_variables_initializer())
+        print(sess.run(outputs))
+        print(sess.run(states))
+
+def in10():
+    hiddenSize = 3
+    sequenceLength = 5
+    inputDim = 3
+    batchSize = 3
+    numClasses = 5
+    dataSize = batchSize * sequenceLength * inputDim
+
+    xData = np.arange(dataSize, dtype=np.float32).reshape(batchSize, sequenceLength, inputDim)
+    print(xData)
+    xData = xData.reshape(-1, hiddenSize)
+    print(xData)
+
+    softmaxW = np.arange(15, dtype=np.float32).reshape(hiddenSize, numClasses)
+    outputs = np.matmul(xData, softmaxW)
+    outputs = outputs.reshape(-1, sequenceLength, numClasses)
+    print(outputs)
+
+def in11():
+    # [batchSize, sequenceLength]
+    yData = tf.constant([[1, 1, 1]])
+
+    # [batchSize, sequenceLength, embDim]
+    prediction1 = tf.constant([[[0.3, 0.7], [0.3, 0.7], [0.3, 0.7]]], dtype=tf.float32)
+    prediction2 = tf.constant([[[0.1, 0.9], [0.1, 0.9], [0.1, 0.9]]], dtype=tf.float32)
+
+    prediction3 = tf.constant([[[1, 0], [1, 0], [1, 0]]], dtype=tf.float32)
+    prediction4 = tf.constant([[[0, 1], [0, 1], [0, 1]]], dtype=tf.float32)
+
+    # [batchSize * sequenceLength]
+    weights =tf.constant([[1, 1, 1]], dtype=tf.float32)
+
+    sequenceLoss1 = tf.contrib.seq2seq.sequence_loss(prediction1, yData, weights)
+    sequenceLoss2 = tf.contrib.seq2seq.sequence_loss(prediction2, yData, weights)
+    sequenceLoss3 = tf.contrib.seq2seq.sequence_loss(prediction3, yData, weights)
+    sequenceLoss4 = tf.contrib.seq2seq.sequence_loss(prediction4, yData, weights)
+
+    sess.run(tf.compat.v1.global_variables_initializer())
+    print('loss1: ', sequenceLoss1.eval())
+    print('loss2: ', sequenceLoss2.eval())
+    print('loss3: ', sequenceLoss3.eval())
+    print('loss4: ', sequenceLoss4.eval())
 
 in7()
